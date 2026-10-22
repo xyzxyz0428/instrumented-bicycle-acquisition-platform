@@ -3,9 +3,9 @@
 <package format="3">
   <name>bikelab_interfaces</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="bikelab@todo.todo">bikelab</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Custom ROS 2 interfaces and acquisition utilities for the instrumented-bicycle platform.</description>
+  <maintainer email="zhangxinyu0428@gmail.com">Xinyu Zhang</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

@@ -1,1 +1,406 @@
-# bikelab_interfaces1
+# Instrumented Bicycle Multi-Sensor Acquisition Platform
+
+This repository contains the synchronized acquisition software and field protocol for an instrumented bicycle. The platform records RTK GNSS, IMU, steering input, bilateral brake force, ANT+ wheel speed and power, rider-view video, Tobii Pro Glasses 3 data, and three RoboSense LiDAR streams across two Raspberry Pi acquisition computers.
+
+## Repository provenance
+
+This unified repository combines the two deployment repositories at their original relative paths. No additional wrapper directory was introduced.
+
+| Acquisition computer | Original source revision | Role |
+| --- | --- | --- |
+| Computer 1 | [`bikelab_interfaces1/main` at `db6b665b92e73a19fa3054f16df42bb6562a0367`](https://github.com/xyzxyz0428/bikelab_interfaces1/tree/db6b665b92e73a19fa3054f16df42bb6562a0367) | GNSS/NTRIP, IMU, steering angle, brake force, ANT+ wheel speed and power, and ROS 2 bag recording |
+| Computer 2 | [`bikelab_interfaces2/foxy` at `a6af6a6554caa62b92ec5706e8e2501f411c5d9d`](https://github.com/xyzxyz0428/bikelab_interfaces2/tree/a6af6a6554caa62b92ec5706e8e2501f411c5d9d) | Camera, Tobii Pro Glasses 3 control, and raw UDP capture from three RoboSense LiDAR units |
+
+The release also incorporates the current, previously uncommitted deployment files from the Computer 1 (`bikelab`) and Computer 2 (`ubuntu`) backups reviewed on 22 October 2026. Runtime recordings, generated logs, empty test artifacts, caches, and backup copies were not imported.
+
+The Tobii `glasses3-pylib` source is intentionally absent from both the release tree and the reachable combined Git history. It must be obtained directly from Tobii at the pinned revision documented below. The independently written controller [`tobii_tools/save_record.py`](tobii_tools/save_record.py) remains part of this project.
+
+## Authorship
+
+The instrumented-bicycle recording platform, system integration, original acquisition utilities, and this protocol were developed and are maintained by **Xinyu Zhang**.
+
+Copyright © 2026 Xinyu Zhang. Copyright ownership and authorship are not transferred by the open-source licence. Third-party components remain the property of their respective copyright holders; see [Copyright and licensing](#copyright-and-licensing).
+
+## Deployment layout
+
+The same unified repository is deployed under the historical directory name expected by each computer's scripts:
+
+| Computer | Required checkout path |
+| --- | --- |
+| Computer 1 | `~/ros2_ws/src/bikelab_interfaces1` |
+| Computer 2 | `/home/ubuntu/ros2_ws/src/bikelab_interfaces2` |
+
+Example:
+
+```bash
+# Computer 1
+git clone https://github.com/xyzxyz0428/bikelab_interfaces.git \
+  ~/ros2_ws/src/bikelab_interfaces1
+
+# Computer 2
+git clone https://github.com/xyzxyz0428/bikelab_interfaces.git \
+  /home/ubuntu/ros2_ws/src/bikelab_interfaces2
+```
+
+### Install the external Tobii dependency on Computer 2
+
+The required upstream revision is:
+
+```text
+Tobii glasses3-pylib commit: 5868e2d327a077cb6bbe276182188b81fc90f224
+```
+
+Install it directly from Tobii, then link the Xinyu Zhang recording controller into the location expected by the unchanged startup script:
+
+```bash
+cd /home/ubuntu/ros2_ws/src/bikelab_interfaces2
+
+git clone https://github.com/tobii/glasses3-pylib.git glasses3-pylib
+git -C glasses3-pylib checkout --detach \
+  5868e2d327a077cb6bbe276182188b81fc90f224
+
+/home/ubuntu/.pyenv/versions/g3env/bin/python -m pip install \
+  ./glasses3-pylib python-dotenv
+
+test ! -e glasses3-pylib/tests/save_record.py
+ln -s ../../tobii_tools/save_record.py \
+  glasses3-pylib/tests/save_record.py
+```
+
+Verify the installation:
+
+```bash
+git -C glasses3-pylib rev-parse HEAD
+sha256sum tobii_tools/save_record.py
+/home/ubuntu/.pyenv/versions/g3env/bin/python -c \
+  "import g3pylib; print(g3pylib.__file__)"
+```
+
+The expected SHA-256 for `tobii_tools/save_record.py` is:
+
+```text
+870700879caf879b51ebc80d5b6404eeb8fa6069f07880654547857474c8e057
+```
+
+Do not commit the cloned `glasses3-pylib/` directory. It is excluded by the root `.gitignore` and remains governed by Tobii's licence.
+
+## Network and synchronization roles
+
+The field network uses `192.168.1.0/24`.
+
+| Device | IPv4 address | Required clock state |
+| --- | --- | --- |
+| Operator computer | `192.168.1.104` | Static wired address |
+| Computer 1 | `192.168.1.103` | Chrony system-time correction magnitude below `1 ms`; deployment target is Computer 2's local reference |
+| Computer 2 | `192.168.1.102` | Local time reference, UDP/123 NTP service listening, and PTP port in `MASTER` state |
+| Tobii Pro Glasses 3 | `192.168.1.166` | `ntp-is-synchronized = true` |
+| Near-range LiDAR | `192.168.1.200` | Web diagnostics report locked time synchronization |
+| Front LiDAR | `192.168.1.201` | Web diagnostics report locked time synchronization |
+| Rear LiDAR | `192.168.1.202` | Web diagnostics report locked time synchronization |
+
+Do not start an experimental run while a required state is false or unlocked. The startup checks are operator gates: some scripts return exit status `0` after printing a failed readiness result, so always inspect their output.
+
+> The original field notes abbreviated the acquisition-computer addresses as `192.168.103` and `192.168.102`. This protocol uses `192.168.1.103` and `192.168.1.102`; verify the deployed addresses before recording.
+
+## Deployment-specific constants
+
+| Component | Current deployed value |
+| --- | --- |
+| Wheel circumference | `2.20114 m` |
+| ANT+ wheel-speed device ID | `18412` |
+| ANT+ power-meter device ID | `64434` |
+| IMU serial device | `/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_0003-if00-port0` |
+| IMU serial rate | `115200 baud` |
+| Steering calibration | ADC `724`, `529`, and `334` correspond to `-45°`, `0°`, and `+45°`; nominal sampling rate `10 Hz` |
+| Brake sensors | Left register `0x17`; right register `0x14`; nominal sampling rate `10 Hz` |
+| Brake-force calibration | Left: `force_g = 5.9092229449 × ADC − 321.9034713174`; right: `force_g = 6.9068825517 × ADC − 341.0880127929` |
+| Computer 2 network interface | `eth0` |
+| Camera | `/dev/video0`; nominally `1280 × 720` at `30 frames/s`, MJPEG |
+| Tobii Pro Glasses 3 | `192.168.1.166`; Python at `/home/ubuntu/.pyenv/versions/g3env/bin/python` |
+| LiDAR `.200` | `RSBP`; UDP ports `2000/2001` |
+| LiDAR `.201` | `RSHELIOS`; UDP ports `2010/2011` |
+| LiDAR `.202` | `RSHELIOS`; UDP ports `2020/2021` |
+
+Record any approved change to these constants in the dataset manifest and release notes.
+
+## Before each recording
+
+Confirm that:
+
+- the operator computer uses `192.168.1.104/24` on the wired interface;
+- both Raspberry Pi computers and all sensors are powered and reachable;
+- Computer 2 has the correct local date and time before it serves as the NTP/PTP reference;
+- the ROS 2 environment is sourced on both computers;
+- the repository and Tobii dependency are deployed at the exact paths above;
+- `/mnt/bikelab_data` is mounted and writable on Computer 2;
+- both computers have sufficient free storage;
+- Computer 1 can reach the configured NTRIP service; and
+- participant consent, ethics approval, and the study privacy procedure cover video and eye-tracking acquisition.
+
+Never commit Wi-Fi, NTRIP, or participant credentials. Useful `tmux` controls are `Ctrl-b`, then `o` to change pane, and `Ctrl-b`, then `d` to detach. See the [tmux cheat sheet](https://tmuxcheatsheet.com/) for additional commands.
+
+## Recording procedure
+
+### 1. Connect from the operator computer
+
+Set the operator computer's wired IPv4 address to `192.168.1.104/24`, then open one SSH session to each acquisition computer:
+
+```bash
+ssh <computer1-user>@192.168.1.103
+ssh ubuntu@192.168.1.102
+```
+
+Replace `<computer1-user>` with the configured Computer 1 account. Computer 2 must use the `ubuntu` account because its startup script contains `/home/ubuntu/...` paths.
+
+### 2. Establish the time reference and network access
+
+On **Computer 2**, set the system clock only if it is not already correct. Replace the placeholder with the actual local time:
+
+```bash
+sudo date -s "YYYY-MM-DD HH:MM:SS"
+date --iso-8601=seconds
+```
+
+Confirm that the NTP and PTP services configured for the deployment are running.
+
+On **Computer 1**, connect to the Wi-Fi network used for NTRIP/internet access, then inspect the active Chrony source:
+
+```bash
+sudo nmcli device wifi connect "WIFI_NAME" password "PASSWORD"
+chronyc sources -v
+chronyc tracking
+```
+
+Confirm that the intended reference is selected. The startup script checks only the magnitude of Chrony's reported system-time correction; it does not prove the identity of the selected source.
+
+### 3. Start Computer 1
+
+#### 3.1 Check time synchronization and start GNSS/NTRIP
+
+```bash
+cd ~/ros2_ws/src/bikelab_interfaces1
+./check_syn_start_gps.sh
+tmux attach -t bikelab_interfaces1
+```
+
+Proceed only when the script prints `NTP sync: true`, with an absolute offset below `0.001 s`, followed by `GPS started`. If it prints `false`, it does not create the tmux session but currently exits with status `0`; treat the printed result as authoritative.
+
+In the `gps` tmux window, confirm that:
+
+- `ublox_rover_hpposllh_navsatfix.launch.py` is running and publishing GNSS data; and
+- `ntrip_client_cli.launch.py` starts without error and receives corrections.
+
+Detach with `Ctrl-b`, then `d`. Perform the receiver's initialization ride, including changes in direction and turns, and wait for the RTK state required by the study.
+
+#### 3.2 Start the Computer 1 sensor loggers
+
+```bash
+cd ~/ros2_ws/src/bikelab_interfaces1
+./start_recording.sh
+tmux attach -t bikelab_interfaces1
+```
+
+The script reads one `/ubx_nav_pvt` message with a three-second timeout. It proceeds only when `carr_soln.status` is non-zero and `diff_soln=1`. This accepts RTK float or fixed; apply any stricter study-specific requirement manually.
+
+Confirm active output in all four panes:
+
+- steering-angle potentiometer;
+- combined ANT+ wheel-speed and power logger;
+- IMU logger; and
+- left/right brake-force logger.
+
+Check for new samples and the absence of repeated I/O, serial, CRC, or device-not-found errors. Detach with `Ctrl-b`, then `d`.
+
+#### 3.3 Start the ROS 2 bag
+
+`start_recording.sh` does not start a ROS 2 bag. In a separate Computer 1 terminal, run:
+
+```bash
+mkdir -p ~/bikelab_interface_logs
+cd ~/bikelab_interface_logs
+ros2 bag record -a
+```
+
+Leave this command running for the full experimental run.
+
+### 4. Start Computer 2
+
+#### 4.1 Verify PTP, NTP service, eye-tracker NTP, and LiDAR synchronization
+
+```bash
+cd /home/ubuntu/ros2_ws/src/bikelab_interfaces2
+./check_ptp_eye_lidar.sh
+```
+
+The required results are:
+
+```text
+# 1) PTP GM check (pmc GET PORT_DATA_SET)
+true
+#2) NTP server: true
+#3) Eyetracker NTP sync check (HTTP endpoint):
+true
+```
+
+The PTP result must show that Computer 2 is `MASTER`. The NTP server check confirms only that a process is listening on UDP port 123. The eye-tracker result must be `true`; an empty raw response indicates a connectivity or service failure. The script does not fail solely because one of these Boolean checks is false, so inspect every line.
+
+From the operator computer, open each diagnostic page and confirm that the time synchronization status is locked:
+
+- [LiDAR 192.168.1.200](http://192.168.1.200/cgi-bin/diagnostic_info.cgi)
+- [LiDAR 192.168.1.201](http://192.168.1.201/cgi-bin/diagnostic_info.cgi)
+- [LiDAR 192.168.1.202](http://192.168.1.202/cgi-bin/diagnostic_info.cgi)
+
+#### 4.2 Start camera, glasses, and LiDAR capture
+
+```bash
+cd /home/ubuntu/ros2_ws/src/bikelab_interfaces2
+sudo -v
+./start_camera_glass_lidar.sh
+tmux attach -t bikelab_interfaces2
+```
+
+The `camera_glasses` window contains `CAM`, `G3`, and `PCAP` panes. In the `G3` pane:
+
+1. place the Tobii calibration target approximately 50–100 cm in front of the participant;
+2. follow the terminal prompt and press Enter to trigger calibration;
+3. confirm `Calibration SUCCESS`; and
+4. confirm that recording starts.
+
+Before riding, verify that:
+
+- `CAM` reports its output directory and a stable capture rate;
+- `G3` reports successful calibration and active recording; and
+- `PCAP` reports that `tcpdump` is listening on `eth0` without error.
+
+Detach with `Ctrl-b`, then `d`.
+
+## Record synchronization evidence for a publication run
+
+The [`time_sync_recording`](time_sync_recording/README.md) tools record read-only synchronization evidence for both hosts, Tobii Glasses 3, and all three LiDARs. For each formal validation run:
+
+1. use the same `--session-id` for every logger;
+2. start the Computer 2 host logger, then the Computer 1 host logger;
+3. start the RoboSense HTTP and Tobii status loggers on Computer 2;
+4. maintain at least five minutes of overlapping observations; and
+5. copy the completed session directories into the dataset archive without editing their generated CSV or JSONL files.
+
+The readiness Booleans and LiDAR `Locked` states do not by themselves quantify synchronization accuracy. Retain the raw timing evidence and request-bound timestamps supplied by these tools.
+
+## Stop the recording safely
+
+Always stop writers cleanly before shutting down a computer or removing storage.
+
+### Computer 1
+
+1. Stop the ROS 2 bag with `Ctrl+C` in its terminal. If that terminal is unavailable, send `SIGINT`:
+
+   ```bash
+   pkill -INT -f "ros2 bag record"
+   ```
+
+2. Wait for the bag writer to finish and return to the shell prompt.
+3. Attach to the sensor session:
+
+   ```bash
+   tmux attach -t bikelab_interfaces1
+   ```
+
+4. Visit each active logger, GNSS, and NTRIP pane and press `Ctrl+C`. Wait for each process to stop and flush its output.
+5. Remove the empty session only after every process has exited:
+
+   ```bash
+   tmux kill-session -t bikelab_interfaces1
+   ```
+
+### Computer 2
+
+1. Attach to the session:
+
+   ```bash
+   tmux attach -t bikelab_interfaces2
+   ```
+
+2. In `G3`, press `Ctrl+C` first and wait for `Done. Recording stopped.`
+3. In `PCAP`, press `Ctrl+C` and wait for the packet summary and shell prompt.
+4. In `CAM`, press `Ctrl+C` and wait for the process to exit.
+5. Remove the session only after all three processes have stopped:
+
+   ```bash
+   tmux kill-session -t bikelab_interfaces2
+   ```
+
+Do not use `tmux kill-session` as the first stop command. Premature termination can prevent the Tobii recorder, pcap writer, or camera writer from finalizing its output.
+
+The current camera implementation does not explicitly call `VideoWriter.release()`. Before leaving the site, open the AVI and verify a plausible duration and frame count.
+
+## Recorded outputs
+
+### Computer 1
+
+Outputs are stored under `~/bikelab_interface_logs/`:
+
+| Pattern | Contents |
+| --- | --- |
+| `steering_angle_<timestamp>.csv` | Steering ADC values and interpolated steering angle |
+| `brake_sensors_force_<timestamp>.csv` | Left/right brake ADC values and calibrated force in grams and newtons |
+| `speed_decoded_<timestamp>.csv` | ANT+ wheel speed and distance |
+| `speed_decoded_pages_<timestamp>.txt` | Optional observed ANT+ speed pages |
+| `rally_payload_decoded_<timestamp>.csv` | ANT+ power-meter payload, cadence, power, and torque fields |
+| `imu_<timestamp>.csv` | Raw and decoded IMU/AHRS data with integrity flags |
+| `rosbag2_<timestamp>/` | ROS 2 bag created by `ros2 bag record -a` |
+
+The deployed steering logger writes `angle_clamped = NaN` for values strictly between `-45°` and `+45°`, and writes the interpolated/clamped value at or beyond those endpoints. Use `angle_deg` as the primary steering-angle field unless that behavior has been explicitly validated for the analysis.
+
+Timestamps in filenames are generated independently. Use the recorded Unix timestamps, not filename equality, for cross-sensor alignment.
+
+### Computer 2
+
+| Path | Contents |
+| --- | --- |
+| `/mnt/bikelab_data/camera_<YYYYMMDD_HHMMSS>/video_mjpg.avi` | USB-camera MJPEG video, nominally `1280 × 720` at `30 frames/s` |
+| `/mnt/bikelab_data/camera_<YYYYMMDD_HHMMSS>/timestamps.csv` | Video frame index and Unix timestamp in nanoseconds |
+| `/mnt/bikelab_data/rs_3lidars_<YYYYMMDD_HHMMSS>.pcap` | Raw UDP traffic from all three LiDAR units |
+| Tobii Glasses 3 internal storage | Eye-tracking recording created by the glasses recorder |
+
+The Computer 2 startup script neither downloads the Tobii recording nor creates a ROS 2 bag. Export the Tobii recording using the laboratory's validated procedure after the run.
+
+## Minimum post-run quality control
+
+1. Confirm that every expected file exists and has non-zero size.
+2. Run `ros2 bag info <bag_directory>`.
+3. Confirm that each CSV has a header and multiple data rows.
+4. Confirm that camera timestamps span the intended run and that the AVI is playable.
+5. Confirm that the pcap contains traffic from `.200`, `.201`, and `.202`.
+6. Export and verify the Tobii recording.
+7. Preserve the synchronization-evidence logs for formal publication runs.
+8. Copy all raw files into the run archive without renaming or overwriting originals.
+
+The dataset manifest should record the run identifier, operator, route or condition, start/stop times, unified repository commit, Tobii commit, sensor serial numbers, calibration outcome, clock status, software environment, and anomalies.
+
+## Citation and archival release
+
+For a publication release:
+
+1. tag the exact unified repository commit used for acquisition;
+2. archive that tag in a DOI-minting repository such as Zenodo;
+3. add `CITATION.cff` after Xinyu Zhang's affiliation, ORCID, preferred software title, and DOI are verified;
+4. cite the software DOI, dataset DOI, and associated article separately; and
+5. ensure the archive is created from this sanitized history, not directly from the original Computer 2 repository that contained the Tobii source copy.
+
+Until a DOI is issued, cite the repository title, Xinyu Zhang, the exact commit hash, and the access date. See the [Scientific Data editorial policy](https://www.nature.com/sdata/policies/editorial-and-publishing-policies) and [repository guidance](https://www.nature.com/sdata/policies/repositories).
+
+## Copyright and licensing
+
+Copyright © 2026 Xinyu Zhang.
+
+Xinyu Zhang retains copyright and authorship in the original project software and documentation. Except where a file or directory carries a different notice, the original project material is released under the [Apache License 2.0](LICENSE). The licence grants reuse rights but does not transfer copyright ownership.
+
+The repository contains RoboSense components under their included 3-clause BSD licences. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the applicable paths and notices.
+
+The Tobii `glasses3-pylib` source is not distributed by this repository. Users must obtain the pinned version directly from the [official Tobii repository](https://github.com/tobii/glasses3-pylib) and comply with Tobii's licence. `tobii_tools/save_record.py` was independently authored by Xinyu Zhang and is covered by Apache-2.0.
+
+Research data are not covered by the software licence. A public dataset release should carry its own explicit licence, normally [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) when the depositor has authority to grant those rights. Identifiable video and eye-tracking data may be released only when participant consent, ethics approval, privacy law, and applicable third-party terms permit it; otherwise use an appropriate controlled-access repository and describe the access procedure in the article.
+
+## Disclaimer
+
+This is research software and an experimental acquisition protocol. It is provided without warranty and is not validated for safety-critical use. Operators remain responsible for safe bicycle operation, participant protection, sensor mounting, legal compliance, and independent validation of synchronization and data integrity.

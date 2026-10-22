@@ -3,5 +3,20 @@ __pycache__/
 *.log
 *.bag
 *.db
+*.pcap
+*.avi
+*.save
+*.save.*
+.env
 .DS_Store
 .vscode/
+
+# External dependency installed directly from Tobii
+/glasses3-pylib/
+
+# Runtime acquisition outputs
+bikelab_interface_logs/
+ntp_logs/
+rosbag2_*/
+/recordings/
+/time_sync_recording/time_sync_logs/
