@@ -407,21 +407,14 @@ Until a DOI is issued, cite the repository title, Xinyu Zhang, the exact commit 
 
 The instrumented-bicycle recording platform, system integration, original acquisition utilities, and this protocol were developed and are maintained by **Xinyu Zhang**.
 
-Copyright © 2025–2026 Xinyu Zhang. Copyright ownership and authorship are not transferred by the open-source licence. Third-party components remain the property of their respective copyright holders; see [Copyright and licensing](#copyright-and-licensing).
+Copyright © 2025–2026 Xinyu Zhang. Copyright ownership and authorship are not transferred by the open-source licence. Third-party components remain the property of their respective copyright holders; see [License](#license).
 
-## Copyright and licensing
+## License
 
-Copyright © 2025–2026 Xinyu Zhang.
-
-Xinyu Zhang retains copyright and authorship in the original project software and documentation. Except where a file or directory carries a different notice, the original project material is released under the [Apache License 2.0](LICENSE). The licence grants reuse rights but does not transfer copyright ownership.
-
-The CRC lookup tables in `bikelab_interfaces1/bikelab_interfaces/scripts/log_imu_to_csv.py` match material from an upstream repository that currently declares no licence; the root Apache licence therefore must not be read as granting rights in those tables. These tables are executed during the standard Computer 1 IMU recording path and therefore cannot be treated as unused code. Obtain written permission or a clear upstream licence before redistribution, or exclude/replace the affected material. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
-
-The Tobii `glasses3-pylib` source, binaries, and locally modified deployment copy are not distributed by this repository. Each user must obtain the pinned dependency directly from the [official Tobii repository](https://github.com/tobii/glasses3-pylib) and accept the terms applicable to that download and use. Publishing or archiving this repository therefore does not redistribute the Tobii library. [`bikelab_interfaces2/tobii_tools/save_record.py`](bikelab_interfaces2/tobii_tools/save_record.py) was independently authored by Xinyu Zhang and is covered by Apache-2.0; no Tobii software is sublicensed through this project.
-
-Apache-2.0 preserves Xinyu Zhang's copyright and attribution, but it also permits commercial use, modification, and redistribution subject to its terms. If the intended policy is to prohibit those uses, do not publish under Apache-2.0 until an appropriate alternative has been selected with institutional or legal review.
-
-Research data are not covered by the software licence. A public dataset release should carry its own explicit licence, normally [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) when the depositor has authority to grant those rights. Identifiable video and eye-tracking data may be released only when participant consent, ethics approval, privacy law, and applicable third-party terms permit it; otherwise use an appropriate controlled-access repository and describe the access procedure in the article.
+- Copyright © 2025–2026 Xinyu Zhang. Original project code and documentation are released under the [Apache License 2.0](LICENSE); ownership and authorship remain with Xinyu Zhang.
+- The CRC lookup tables in `bikelab_interfaces1/bikelab_interfaces/scripts/log_imu_to_csv.py` are not covered by this licence grant while their upstream redistribution rights remain unconfirmed. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+- Tobii `glasses3-pylib` is not distributed here. Users obtain it directly from [Tobii](https://github.com/tobii/glasses3-pylib) under Tobii's terms. The independently written `bikelab_interfaces2/tobii_tools/save_record.py` is covered by Apache-2.0.
+- Recorded research data are not covered by the software licence and require a separate data licence plus the applicable consent, ethics, privacy, and third-party approvals.
 
 ## Disclaimer
 
