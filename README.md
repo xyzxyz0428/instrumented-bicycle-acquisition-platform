@@ -164,7 +164,7 @@ ssh bikelab@192.168.1.103
 ssh ubuntu@192.168.1.102
 ```
 
-Computer 1 uses the `bikelab` account. Computer 2 must use the `ubuntu` account because its startup script contains `/home/ubuntu/...` paths.
+Computer 1 uses the `bikelab` account. Computer 2 uses the `ubuntu` account.
 
 ### 2. Establish the time reference and network access
 
