@@ -2,34 +2,7 @@
 
 The root Apache License 2.0 applies only to original project material owned by Xinyu Zhang. It does not replace the licences of the components listed below.
 
-## Included components
-
-### RoboSense LiDAR software
-
-The following directories contain RoboSense software:
-
-- `bikelab_interfaces2/rslidar_sdk/`
-- `bikelab_interfaces2/rslidar_msg/`
-- `bikelab_interfaces2/rslidar_sdk/src/rs_driver/`
-
-Copyright © 2020 RoboSense.
-
-These components are distributed under their included 3-clause BSD licence. Their authoritative licence texts are retained at:
-
-- `bikelab_interfaces2/rslidar_sdk/LICENSE`
-- `bikelab_interfaces2/rslidar_msg/LICENSE`
-- `bikelab_interfaces2/rslidar_sdk/src/rs_driver/LICENSE`
-
-### ROS 2 package test templates
-
-The following files carry their own Open Source Robotics Foundation, Inc. copyright notices and Apache License 2.0 headers:
-
-- `bikelab_interfaces2/camera_streamer/test/test_copyright.py`
-- `bikelab_interfaces2/camera_streamer/test/test_flake8.py`
-- `bikelab_interfaces2/camera_streamer/test/test_pep257.py`
-- `bikelab_interfaces2/data_record/test/test_copyright.py`
-- `bikelab_interfaces2/data_record/test/test_flake8.py`
-- `bikelab_interfaces2/data_record/test/test_pep257.py`
+## Included material requiring separate rights clearance
 
 ### IMU CRC lookup tables — rights clearance required
 

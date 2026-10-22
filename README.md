@@ -22,7 +22,7 @@ Each directory is self-contained at the relative path expected by that computer'
 
 ## Deployment layout
 
-Clone the unified repository outside the ROS 2 workspace on each computer, then link only that computer's deployment directory into the historical path expected by the unchanged scripts. This prevents ROS 2 from discovering the other computer's packages.
+Clone the unified repository outside the ROS 2 workspace on each computer, then link only that computer's deployment directory into the historical path expected by the unchanged scripts.
 
 | Computer | Required checkout path |
 | --- | --- |
@@ -149,7 +149,7 @@ Confirm that:
 - the operator computer uses `192.168.1.104/24` on the wired interface;
 - both Raspberry Pi computers and all non-Tobii sensors are powered and reachable; keep the Tobii Recording Unit switched off until Step 2 is complete;
 - at the recording site, Computer 2 is manually set to the actual current local date and time before every recording session and before it serves as the NTP/PTP reference;
-- the ROS 2 environment is sourced on both computers;
+- the ROS 2 environment is sourced on Computer 1;
 - the repository and Tobii dependency are deployed at the exact paths above;
 - `~/bikelab_interface_logs` already exists and is writable on Computer 1;
 - `/mnt/bikelab_data` is mounted and writable on Computer 2;
@@ -415,7 +415,7 @@ Copyright © 2025–2026 Xinyu Zhang.
 
 Xinyu Zhang retains copyright and authorship in the original project software and documentation. Except where a file or directory carries a different notice, the original project material is released under the [Apache License 2.0](LICENSE). The licence grants reuse rights but does not transfer copyright ownership.
 
-The repository contains RoboSense components under their included 3-clause BSD licences and ROS test templates under Apache-2.0. The CRC lookup tables in `bikelab_interfaces1/bikelab_interfaces/scripts/log_imu_to_csv.py` match material from an upstream repository that currently declares no licence; the root Apache licence therefore must not be read as granting rights in those tables. These tables are executed during the standard Computer 1 IMU recording path and therefore cannot be treated as unused code. Obtain written permission or a clear upstream licence before redistribution, or exclude/replace the affected material. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
+The CRC lookup tables in `bikelab_interfaces1/bikelab_interfaces/scripts/log_imu_to_csv.py` match material from an upstream repository that currently declares no licence; the root Apache licence therefore must not be read as granting rights in those tables. These tables are executed during the standard Computer 1 IMU recording path and therefore cannot be treated as unused code. Obtain written permission or a clear upstream licence before redistribution, or exclude/replace the affected material. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
 
 The Tobii `glasses3-pylib` source, binaries, and locally modified deployment copy are not distributed by this repository. Each user must obtain the pinned dependency directly from the [official Tobii repository](https://github.com/tobii/glasses3-pylib) and accept the terms applicable to that download and use. Publishing or archiving this repository therefore does not redistribute the Tobii library. [`bikelab_interfaces2/tobii_tools/save_record.py`](bikelab_interfaces2/tobii_tools/save_record.py) was independently authored by Xinyu Zhang and is covered by Apache-2.0; no Tobii software is sublicensed through this project.
 
