@@ -2,12 +2,6 @@
 
 This repository contains the synchronized acquisition software and field protocol for an instrumented bicycle. The platform records RTK GNSS, IMU, steering input, bilateral brake force, ANT+ wheel speed and power, rider-view video, Tobii Pro Glasses 3 data, and three RoboSense LiDAR streams across two Raspberry Pi acquisition computers.
 
-## Authorship
-
-The instrumented-bicycle recording platform, system integration, original acquisition utilities, and this protocol were developed and are maintained by **Xinyu Zhang**.
-
-Copyright © 2025–2026 Xinyu Zhang. Copyright ownership and authorship are not transferred by the open-source licence. Third-party components remain the property of their respective copyright holders; see [Copyright and licensing](#copyright-and-licensing).
-
 ## Repository layout
 
 The acquisition software is separated by deployment computer:
@@ -408,6 +402,12 @@ For a publication release:
 5. ensure the archive is created from the tagged public repository revision.
 
 Until a DOI is issued, cite the repository title, Xinyu Zhang, the exact commit hash, and the access date. See the [Scientific Data editorial policy](https://www.nature.com/sdata/policies/editorial-and-publishing-policies) and [repository guidance](https://www.nature.com/sdata/policies/repositories).
+
+## Authorship
+
+The instrumented-bicycle recording platform, system integration, original acquisition utilities, and this protocol were developed and are maintained by **Xinyu Zhang**.
+
+Copyright © 2025–2026 Xinyu Zhang. Copyright ownership and authorship are not transferred by the open-source licence. Third-party components remain the property of their respective copyright holders; see [Copyright and licensing](#copyright-and-licensing).
 
 ## Copyright and licensing
 
