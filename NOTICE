@@ -1,6 +1,6 @@
 Instrumented Bicycle Multi-Sensor Acquisition Platform
 
-Copyright 2026 Xinyu Zhang
+Copyright 2025-2026 Xinyu Zhang
 
 This product contains original software and documentation developed by
 Xinyu Zhang.
@@ -15,3 +15,10 @@ Xinyu Zhang. The license grant does not transfer ownership or authorship.
 This distribution includes RoboSense software under its separate
 3-clause BSD license. The original copyright and license notices are
 retained in the corresponding source directories.
+
+Some ROS 2 test-template files retain Open Source Robotics Foundation,
+Inc. copyright notices and are licensed under Apache License 2.0.
+
+The CRC lookup tables identified in THIRD_PARTY_NOTICES.md have an
+unresolved upstream license and are not covered by Xinyu Zhang's
+Apache-2.0 grant. Resolve those rights before public redistribution.
