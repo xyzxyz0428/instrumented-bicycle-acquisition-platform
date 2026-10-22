@@ -21,7 +21,7 @@ Clone the unified repository outside the ROS 2 workspace on each computer, then 
 | Computer | Required checkout path |
 | --- | --- |
 | Computer 1 | `~/ros2_ws/src/bikelab_interfaces1` |
-| Computer 2 | `~/ros2_ws/src/bikelab_interfaces2` (`/home/ubuntu/ros2_ws/src/bikelab_interfaces2`) |
+| Computer 2 | `~/ros2_ws/src/bikelab_interfaces2` |
 
 If either target path already exists, preserve any local changes and move the existing checkout aside before continuing. The commands below deliberately fail instead of overwriting an existing directory or link.
 
@@ -160,11 +160,9 @@ Never commit Wi-Fi, NTRIP, or participant credentials. Useful `tmux` controls ar
 Set the operator computer's wired IPv4 address to `192.168.1.104/24`, then open one SSH session to each acquisition computer:
 
 ```bash
-ssh bikelab@192.168.1.103
-ssh ubuntu@192.168.1.102
+ssh USERNAME@192.168.1.103
+ssh USERNAME@192.168.1.102
 ```
-
-Computer 1 uses the `bikelab` account. Computer 2 uses the `ubuntu` account.
 
 ### 2. Establish the time reference and network access
 
