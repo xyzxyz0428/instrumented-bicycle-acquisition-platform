@@ -34,11 +34,11 @@ Example:
 
 ```bash
 # Computer 1
-git clone https://github.com/xyzxyz0428/bikelab_interfaces.git \
+git clone https://github.com/xyzxyz0428/instrumented-bicycle-acquisition-platform.git \
   ~/ros2_ws/src/bikelab_interfaces1
 
 # Computer 2
-git clone https://github.com/xyzxyz0428/bikelab_interfaces.git \
+git clone https://github.com/xyzxyz0428/instrumented-bicycle-acquisition-platform.git \
   /home/ubuntu/ros2_ws/src/bikelab_interfaces2
 ```
 
