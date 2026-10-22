@@ -12,11 +12,11 @@ __pycache__/
 .vscode/
 
 # External dependency installed directly from Tobii
-/glasses3-pylib/
+/bikelab_interfaces2/glasses3-pylib/
 
 # Runtime acquisition outputs
 bikelab_interface_logs/
 ntp_logs/
 rosbag2_*/
-/recordings/
-/time_sync_recording/time_sync_logs/
+recordings/
+**/time_sync_recording/time_sync_logs/

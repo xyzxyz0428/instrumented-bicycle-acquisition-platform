@@ -2,44 +2,56 @@
 
 This repository contains the synchronized acquisition software and field protocol for an instrumented bicycle. The platform records RTK GNSS, IMU, steering input, bilateral brake force, ANT+ wheel speed and power, rider-view video, Tobii Pro Glasses 3 data, and three RoboSense LiDAR streams across two Raspberry Pi acquisition computers.
 
-## Repository provenance
-
-This unified repository combines the two deployment repositories at their original relative paths. No additional wrapper directory was introduced.
-
-| Acquisition computer | Original source revision | Role |
-| --- | --- | --- |
-| Computer 1 | [`bikelab_interfaces1/main` at `db6b665b92e73a19fa3054f16df42bb6562a0367`](https://github.com/xyzxyz0428/bikelab_interfaces1/tree/db6b665b92e73a19fa3054f16df42bb6562a0367) | GNSS/NTRIP, IMU, steering angle, brake force, ANT+ wheel speed and power, and ROS 2 bag recording |
-| Computer 2 | [`bikelab_interfaces2/foxy` at `a6af6a6554caa62b92ec5706e8e2501f411c5d9d`](https://github.com/xyzxyz0428/bikelab_interfaces2/tree/a6af6a6554caa62b92ec5706e8e2501f411c5d9d) | Camera, Tobii Pro Glasses 3 control, and raw UDP capture from three RoboSense LiDAR units |
-
-The release also incorporates the current, previously uncommitted deployment files from the Computer 1 (`bikelab`) and Computer 2 (`ubuntu`) backups reviewed on 22 October 2026. Runtime recordings, generated logs, empty test artifacts, caches, and newly found untracked backup copies were not imported. Backup-named files already tracked by the source repositories are retained unchanged for provenance, but are not authoritative acquisition entry points: `camera_streamer/setup.py.save`, `check_ptp_eye_lidar.sh.save`, `bikelab_interfaces/scripts/garmin_driver_bk.py`, and `start_camera_and_glass_bk.sh`.
-
-The Tobii `glasses3-pylib` source is intentionally absent from both the release tree and the reachable combined Git history. It must be obtained directly from Tobii at the pinned revision documented below. The independently written controller [`tobii_tools/save_record.py`](tobii_tools/save_record.py) remains part of this project.
-
 ## Authorship
 
 The instrumented-bicycle recording platform, system integration, original acquisition utilities, and this protocol were developed and are maintained by **Xinyu Zhang**.
 
 Copyright © 2025–2026 Xinyu Zhang. Copyright ownership and authorship are not transferred by the open-source licence. Third-party components remain the property of their respective copyright holders; see [Copyright and licensing](#copyright-and-licensing).
 
+## Repository layout
+
+The acquisition software is separated by deployment computer:
+
+```text
+.
+├── bikelab_interfaces1/    # Computer 1: GNSS, IMU, steering, brakes, ANT+, ROS 2 bag
+└── bikelab_interfaces2/    # Computer 2: camera, Tobii controller, and three LiDARs
+```
+
+Each directory is self-contained at the relative path expected by that computer's unchanged startup scripts. The root directory contains only repository-level documentation, licensing, and ignore rules in addition to these two deployment directories.
+
 ## Deployment layout
 
-The same unified repository is deployed under the historical directory name expected by each computer's scripts:
+Clone the unified repository outside the ROS 2 workspace on each computer, then link only that computer's deployment directory into the historical path expected by the unchanged scripts. This prevents ROS 2 from discovering the other computer's packages.
 
 | Computer | Required checkout path |
 | --- | --- |
 | Computer 1 | `~/ros2_ws/src/bikelab_interfaces1` |
-| Computer 2 | `/home/ubuntu/ros2_ws/src/bikelab_interfaces2` |
+| Computer 2 | `~/ros2_ws/src/bikelab_interfaces2` (`/home/ubuntu/ros2_ws/src/bikelab_interfaces2`) |
 
-Example:
+If either target path already exists, preserve any local changes and move the existing checkout aside before continuing. The commands below deliberately fail instead of overwriting an existing directory or link.
 
 ```bash
 # Computer 1
 git clone https://github.com/xyzxyz0428/instrumented-bicycle-acquisition-platform.git \
-  ~/ros2_ws/src/bikelab_interfaces1
+  ~/instrumented-bicycle-acquisition-platform
+test ! -e ~/ros2_ws/src/bikelab_interfaces1 && \
+  ln -sT ~/instrumented-bicycle-acquisition-platform/bikelab_interfaces1 \
+    ~/ros2_ws/src/bikelab_interfaces1
 
 # Computer 2
 git clone https://github.com/xyzxyz0428/instrumented-bicycle-acquisition-platform.git \
-  /home/ubuntu/ros2_ws/src/bikelab_interfaces2
+  ~/instrumented-bicycle-acquisition-platform
+test ! -e ~/ros2_ws/src/bikelab_interfaces2 && \
+  ln -sT ~/instrumented-bicycle-acquisition-platform/bikelab_interfaces2 \
+    ~/ros2_ws/src/bikelab_interfaces2
+```
+
+After deployment, the operational commands remain unchanged:
+
+```bash
+cd ~/ros2_ws/src/bikelab_interfaces1       # Computer 1
+cd ~/ros2_ws/src/bikelab_interfaces2       # Computer 2 (ubuntu account)
 ```
 
 ### Install the external Tobii dependency on Computer 2
@@ -295,7 +307,7 @@ Detach with `Ctrl-b`, then `d`.
 
 ## Record synchronization evidence for a publication run
 
-The [`time_sync_recording`](time_sync_recording/README.md) tools record read-only synchronization evidence for both hosts, Tobii Glasses 3, and all three LiDARs. For each formal validation run:
+The host-specific synchronization tools for [Computer 1](bikelab_interfaces1/time_sync_recording/README.md) and [Computer 2](bikelab_interfaces2/time_sync_recording/README.md) record read-only timing evidence for both hosts, Tobii Glasses 3, and all three LiDARs. For each formal validation run:
 
 1. use the same `--session-id` for every logger;
 2. start the Computer 2 host logger, then the Computer 1 host logger;
@@ -393,7 +405,7 @@ For a publication release:
 2. archive that tag in a DOI-minting repository such as Zenodo;
 3. add `CITATION.cff` after Xinyu Zhang's affiliation, ORCID, preferred software title, and DOI are verified;
 4. cite the software DOI, dataset DOI, and associated article separately; and
-5. ensure the archive is created from this sanitized history, not directly from the original Computer 2 repository that contained the Tobii source copy.
+5. ensure the archive is created from the tagged public repository revision.
 
 Until a DOI is issued, cite the repository title, Xinyu Zhang, the exact commit hash, and the access date. See the [Scientific Data editorial policy](https://www.nature.com/sdata/policies/editorial-and-publishing-policies) and [repository guidance](https://www.nature.com/sdata/policies/repositories).
 
@@ -403,9 +415,9 @@ Copyright © 2025–2026 Xinyu Zhang.
 
 Xinyu Zhang retains copyright and authorship in the original project software and documentation. Except where a file or directory carries a different notice, the original project material is released under the [Apache License 2.0](LICENSE). The licence grants reuse rights but does not transfer copyright ownership.
 
-The repository contains RoboSense components under their included 3-clause BSD licences and ROS test templates under Apache-2.0. The CRC lookup tables in `bikelab_interfaces/scripts/log_imu_to_csv.py` match material from an upstream repository that currently declares no licence; the root Apache licence therefore must not be read as granting rights in those tables. These tables are executed during the standard Computer 1 IMU recording path and therefore cannot be treated as unused code. Obtain written permission or a clear upstream licence before redistribution, or exclude/replace the affected material. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
+The repository contains RoboSense components under their included 3-clause BSD licences and ROS test templates under Apache-2.0. The CRC lookup tables in `bikelab_interfaces1/bikelab_interfaces/scripts/log_imu_to_csv.py` match material from an upstream repository that currently declares no licence; the root Apache licence therefore must not be read as granting rights in those tables. These tables are executed during the standard Computer 1 IMU recording path and therefore cannot be treated as unused code. Obtain written permission or a clear upstream licence before redistribution, or exclude/replace the affected material. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
 
-The Tobii `glasses3-pylib` source, binaries, and locally modified deployment copy are not distributed by this repository. Each user must obtain the pinned dependency directly from the [official Tobii repository](https://github.com/tobii/glasses3-pylib) and accept the terms applicable to that download and use. Publishing or archiving this repository therefore does not redistribute the Tobii library. `tobii_tools/save_record.py` was independently authored by Xinyu Zhang and is covered by Apache-2.0; no Tobii software is sublicensed through this project.
+The Tobii `glasses3-pylib` source, binaries, and locally modified deployment copy are not distributed by this repository. Each user must obtain the pinned dependency directly from the [official Tobii repository](https://github.com/tobii/glasses3-pylib) and accept the terms applicable to that download and use. Publishing or archiving this repository therefore does not redistribute the Tobii library. [`bikelab_interfaces2/tobii_tools/save_record.py`](bikelab_interfaces2/tobii_tools/save_record.py) was independently authored by Xinyu Zhang and is covered by Apache-2.0; no Tobii software is sublicensed through this project.
 
 Apache-2.0 preserves Xinyu Zhang's copyright and attribution, but it also permits commercial use, modification, and redistribution subject to its terms. If the intended policy is to prohibit those uses, do not publish under Apache-2.0 until an appropriate alternative has been selected with institutional or legal review.
 
