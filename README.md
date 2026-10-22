@@ -44,6 +44,8 @@ git clone https://github.com/xyzxyz0428/instrumented-bicycle-acquisition-platfor
 
 ### Install the external Tobii dependency on Computer 2
 
+This repository follows a non-redistribution model for the Tobii dependency: it contains neither the `glasses3-pylib` source nor the locally modified deployment copy. Each user obtains the dependency independently and directly from Tobii.
+
 Use this pinned official upstream reference:
 
 ```text
@@ -401,9 +403,9 @@ Copyright © 2025–2026 Xinyu Zhang.
 
 Xinyu Zhang retains copyright and authorship in the original project software and documentation. Except where a file or directory carries a different notice, the original project material is released under the [Apache License 2.0](LICENSE). The licence grants reuse rights but does not transfer copyright ownership.
 
-The repository contains RoboSense components under their included 3-clause BSD licences and ROS test templates under Apache-2.0. The CRC lookup tables in `bikelab_interfaces/scripts/log_imu_to_csv.py` match material from an upstream repository that currently declares no licence; the root Apache licence therefore must not be read as granting rights in those tables. Obtain written permission or a clear upstream licence before public redistribution, or exclude/replace the affected material. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
+The repository contains RoboSense components under their included 3-clause BSD licences and ROS test templates under Apache-2.0. The CRC lookup tables in `bikelab_interfaces/scripts/log_imu_to_csv.py` match material from an upstream repository that currently declares no licence; the root Apache licence therefore must not be read as granting rights in those tables. These tables are executed during the standard Computer 1 IMU recording path and therefore cannot be treated as unused code. Obtain written permission or a clear upstream licence before redistribution, or exclude/replace the affected material. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
 
-The Tobii `glasses3-pylib` source is not distributed by this repository. Users must obtain the pinned version directly from the [official Tobii repository](https://github.com/tobii/glasses3-pylib) and comply with Tobii's research-use agreement and eye-tracking-data requirements. Commercial, medical, and some forms of third-party distribution may require a separate licence directly from Tobii. `tobii_tools/save_record.py` was independently authored by Xinyu Zhang and is covered by Apache-2.0; this project's licence grants no rights in Tobii software or APIs.
+The Tobii `glasses3-pylib` source, binaries, and locally modified deployment copy are not distributed by this repository. Each user must obtain the pinned dependency directly from the [official Tobii repository](https://github.com/tobii/glasses3-pylib) and accept the terms applicable to that download and use. Publishing or archiving this repository therefore does not redistribute the Tobii library. `tobii_tools/save_record.py` was independently authored by Xinyu Zhang and is covered by Apache-2.0; no Tobii software is sublicensed through this project.
 
 Apache-2.0 preserves Xinyu Zhang's copyright and attribution, but it also permits commercial use, modification, and redistribution subject to its terms. If the intended policy is to prohibit those uses, do not publish under Apache-2.0 until an appropriate alternative has been selected with institutional or legal review.
 
