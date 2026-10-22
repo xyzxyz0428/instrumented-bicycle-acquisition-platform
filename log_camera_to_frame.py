@@ -8,7 +8,7 @@ import threading
 import argparse
 
 class CameraRecorder:
-    def __init__(self, device_id=0, frame_rate=30.0, width=640, height=480, frame_id="camera_frame",
+    def __init__(self, device_id=0, frame_rate=30.0, width=1280, height=720, frame_id="camera_frame",
                  base_dir="/mnt/bikelab_data"):
         # Parameters (kept similar to ROS params)
         self.device_id = int(device_id)
@@ -174,8 +174,8 @@ def main():
     parser = argparse.ArgumentParser(description="ROS-free camera recorder (V4L2+MJPG) saving frames to disk.")
     parser.add_argument("--device_id", type=int, default=0)
     parser.add_argument("--frame_rate", type=float, default=30.0)
-    parser.add_argument("--width", type=int, default=640)
-    parser.add_argument("--height", type=int, default=480)
+    parser.add_argument("--width", type=int, default=1280)
+    parser.add_argument("--height", type=int, default=720)
     parser.add_argument("--frame_id", type=str, default="camera_frame")
     parser.add_argument("--base_dir", type=str, default="/mnt/bikelab_data")
     args = parser.parse_args()

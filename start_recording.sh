@@ -8,6 +8,7 @@ SCRIPT_DIR="$HOME/ros2_ws/src/bikelab_interfaces1/bikelab_interfaces/scripts"
 # --- prerequisites ---
 command -v ros2 >/dev/null 2>&1 || { echo "ros2 not found in PATH"; exit 2; }
 command -v tmux >/dev/null 2>&1 || { echo "tmux not found. Install: sudo apt install -y tmux"; exit 2; }
+command -v timeout >/dev/null 2>&1 || { echo "timeout not found"; exit 2; }
 
 # must run inside the existing tmux session
 if ! tmux has-session -t "$SESSION" 2>/dev/null; then
@@ -21,40 +22,54 @@ if [[ ! -d "$SCRIPT_DIR" ]]; then
   exit 2
 fi
 
-echo "# GPS check using /ubx_nav_pvt (+ prints /ubx_esf_status fusionMode)"
+echo "# GPS check using /ubx_nav_pvt"
 
 out="$(
-  { ros2 topic echo --once /ubx_nav_pvt; echo "__ESF__"; ros2 topic echo --once /ubx_esf_status; } 2>/dev/null \
-  | awk '
-    $0=="__ESF__" { mode="esf"; next }
-
-    # --- NAV-PVT parsing (RTK status) ---
-    mode!="esf" {
-      if ($1=="diff_soln:") { d = ($2=="true") ? 1 : 0; next }
-      if ($1=="carr_soln:") { in_c=1; next }
-      if (in_c && $1=="status:") { c=$2; in_c=0; next }
+  {
+    timeout 3s ros2 topic echo --once /ubx_nav_pvt 2>/dev/null || echo "__NAV_TIMEOUT__"
+  } | awk '
+    $0=="__NAV_TIMEOUT__" {
+      nav_timeout=1
       next
     }
 
-    # --- ESF-STATUS parsing (fusionMode / fusion_mode) ---
-    mode=="esf" {
-      if ($1=="fusion_mode:" || $1=="fusionMode:") {
-        if (NF>=2) { fm=$2; got=1; in_f=0; next }
-        in_f=1; next
+    {
+      if ($1=="diff_soln:") {
+        d = ($2=="true") ? 1 : 0
+        got_d=1
+        next
       }
-      if (in_f && $1=="status:") { fm=$2; got=1; in_f=0; next }
-      next
+
+      if ($1=="carr_soln:") {
+        in_c=1
+        next
+      }
+
+      if (in_c && $1=="status:") {
+        c=$2
+        got_c=1
+        in_c=0
+        next
+      }
     }
 
     END {
-      c += 0; d += 0
+      c += 0
+      d += 0
 
-      if (!got) { fm_s="NA" }
-      else { fm += 0; fm_s=fm }
+      printf("carr_soln.status=%d diff_soln=%d", c, d)
 
-      printf("carr_soln.status=%d diff_soln=%d fusion_mode.status=%s\n", c, d, fm_s)
+      if (nav_timeout) {
+        printf(" NAV_TIMEOUT")
+      }
 
-      ok = (c != 0 && d == 1) ? "true" : "false"
+      if (!got_c || !got_d) {
+        printf(" NAV_PVT_PARSE_INCOMPLETE")
+      }
+
+      printf("\n")
+
+      ok = (!nav_timeout && got_c && got_d && c != 0 && d == 1) ? "true" : "false"
       print ok
     }'
 )"
@@ -66,11 +81,9 @@ echo "$status_line"
 echo "$ok"
 
 if [[ "$ok" != "true" ]]; then
-  echo "false"
   exit 1
 fi
 
-echo "true"
 echo
 echo "# GPS ok -> start 4 sensor loggers in tmux session '$SESSION'"
 
@@ -91,6 +104,8 @@ PANE_POWER="$(tmux split-window -v -P -F '#{pane_id}' -t "$PANE_POT")"
 # split horizontally from the original top pane -> top-right pane
 PANE_IMU="$(tmux split-window -h -P -F '#{pane_id}' -t "$PANE_POT")"
 
+# split horizontally from bottom pane -> bottom-right pane
+PANE_BRAKE="$(tmux split-window -h -P -F '#{pane_id}' -t "$PANE_POWER")"
 
 # layout tidy for 4 panes
 tmux select-layout -t "$SESSION:$WIN_NAME" tiled
@@ -107,6 +122,9 @@ tmux send-keys -t "$PANE_POWER" \
 tmux send-keys -t "$PANE_IMU" \
   "cd \"$SCRIPT_DIR\" && python3 log_imu_to_csv.py --port /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_0003-if00-port0 --baud 115200 --timeout_ms 20" C-m
 
+# Pane: brake sensor logger
+tmux send-keys -t "$PANE_BRAKE" \
+  "cd \"$SCRIPT_DIR\" && python3 log_brake_sensors_force_to_csv.py" C-m
 
 # keep layout tidy
 tmux select-layout -t "$SESSION:$WIN_NAME" tiled
@@ -115,4 +133,5 @@ echo "Started in tmux. Attach: tmux attach -t $SESSION"
 echo "Potentiometer pane: $PANE_POT"
 echo "Power pane:         $PANE_POWER"
 echo "IMU pane:           $PANE_IMU"
+echo "Brake pane:         $PANE_BRAKE"
 echo "In tmux: switch panes Ctrl-b then o / arrows. Detach: Ctrl-b then d."

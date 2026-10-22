@@ -12,9 +12,14 @@ I2C_BUS = 1
 I2C_ADDR = 0x24
 REG = 0x10
 
-ADC_minus_90 = 235
-ADC_0 = 551
-ADC_90 = 867
+#ADC_minus_90 = 877
+#ADC_minus_45 = 668
+#ADC_0 = 525
+#ADC_45 = 381
+ADC_minus_45 = 724
+ADC_0 = 529
+ADC_45 = 334
+#ADC_90 = 207
 
 SAMPLE_PERIOD_S = 0.1     # 10 Hz, same as your timer
 FLUSH_ROWS = 500          # write every 500 samples (adjust as you like)
@@ -33,13 +38,13 @@ def interpolate_angle(adc_value: int, points):
     for i in range(len(points) - 1):
         x0, y0 = points[i]
         x1, y1 = points[i + 1]
-        if x0 <= adc_value <= x1:
+        if x1 <= adc_value <= x0:
             return y0 + (y1 - y0) * (adc_value - x0) / (x1 - x0)
 
     # clamp
-    if adc_value < points[0][0]:
+    if adc_value > points[0][0]:
         return float(points[0][1])
-    if adc_value > points[-1][0]:
+    if adc_value < points[-1][0]:
         return float(points[-1][1])
     return float("nan")
 
@@ -60,9 +65,9 @@ class PotentiometerCSVLogger:
 
         # calibration points
         self.points = [
-            (ADC_minus_90, -90.0),
+            (ADC_minus_45, -45.0),
             (ADC_0, 0.0),
-            (ADC_90, 90.0),
+            (ADC_45, 45.0)
         ]
 
         # CSV
@@ -101,13 +106,15 @@ class PotentiometerCSVLogger:
         t = now_unix_ns()
         try:
             adc = int(self.read_adc())
-
+            print(adc)
             angle = interpolate_angle(adc, self.points)
-
+            print(angle)
             # "clamped" angle is already clamped by interpolate_angle for out-of-range;
             # keep both columns for clarity.
-            angle_clamped = angle
-
+            if (angle >=45) or (angle <=-45):
+                angle_clamped = angle
+            else:
+                angle_clamped = math.nan
             row = [t, 1, adc, angle, angle_clamped, ""]
         except Exception as e:
             # distinguish "missing" from "0": use NaN and ok=0
