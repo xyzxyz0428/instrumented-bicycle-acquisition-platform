@@ -166,7 +166,7 @@ ssh USERNAME@192.168.1.102
 
 ### 2. Establish the time reference and network access
 
-On **Computer 2**, manually set the system clock at the recording site at the start of **every recording session**. Replace the placeholder with the actual current local date and time:
+On **Computer 2** and **Computer 1**, manually set the system clock at the recording site at the start of **every recording session**. Replace the placeholder with the actual current local date and time:
 
 ```bash
 sudo date -s "YYYY-MM-DD HH:MM:SS"
